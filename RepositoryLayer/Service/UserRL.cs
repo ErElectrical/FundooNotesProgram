@@ -61,10 +61,10 @@ namespace RepositoryLayer.Service
             {
                 //Returns the first element of a collection, or the first element that satisfies a condition. Returns a default value if index is out of range.
 
-                var Decryptpassword = fundooContext.User.Where(x => x.Email == userLogin.Email).Select(x => x.Password).ToString();
+                var Decryptpassword = this.fundooContext.User.Where(x => x.Email == userLogin.Email).Select(x => x.Password).ToString();
                 var Encryptpassword = Decrypt(Decryptpassword);
-                var user = fundooContext.User.Where(x => x.Email == userLogin.Email && Encryptpassword == userLogin.Password).FirstOrDefault();
-                if( user != null)
+                var user = fundooContext.User.Where(x => x.Email == userLogin.Email).FirstOrDefault();
+                if( user != null && Encryptpassword == userLogin.Password)
                 {
                     var result = GenerateSecurityToken(user.Email, user.Id);
                     return result;
@@ -144,49 +144,28 @@ namespace RepositoryLayer.Service
             return this.fundooContext.User.SingleOrDefault(e => e.Email.Equals(EmailId));
         }
 
-        private  string Encrypt(string password)
+        public static string Encrypt(string password)
         {
-            string EncryptionKey = "MAKV2SPBNI99212";
-            byte[] clearBytes = Encoding.Unicode.GetBytes(password);
-            using (Aes encryptor = Aes.Create())
-            {
-                Rfc2898DeriveBytes pdb = new Rfc2898DeriveBytes(EncryptionKey, new byte[] { 0x49, 0x76, 0x61, 0x6e, 0x20, 0x4d, 0x65, 0x64, 0x76, 0x65, 0x64, 0x65, 0x76 });
-                encryptor.Key = pdb.GetBytes(32);
-                encryptor.IV = pdb.GetBytes(16);
-                using (MemoryStream ms = new MemoryStream())
-                {
-                    using (CryptoStream cs = new CryptoStream(ms, encryptor.CreateEncryptor(), CryptoStreamMode.Write))
-                    {
-                        cs.Write(clearBytes, 0, clearBytes.Length);
-                        cs.Close();
-                    }
-                    password = Convert.ToBase64String(ms.ToArray());
-                }
-            }
-            return password;
+            string strmsg = string.Empty;
+            byte[] encode = new byte[password.Length];
+            encode = Encoding.UTF8.GetBytes(password);
+            strmsg = Convert.ToBase64String(encode);
+            return strmsg;
         }
 
-        private  string Decrypt(string password)
+        public static string Decrypt(string encryptpwd)
         {
-            string EncryptionKey = "MAKV2SPBNI99212";
-            byte[] cipherBytes = Convert.FromBase64String(password);
-            using (Aes encryptor = Aes.Create())
-            {
-                Rfc2898DeriveBytes pdb = new Rfc2898DeriveBytes(EncryptionKey, new byte[] { 0x49, 0x76, 0x61, 0x6e, 0x20, 0x4d, 0x65, 0x64, 0x76, 0x65, 0x64, 0x65, 0x76 });
-                encryptor.Key = pdb.GetBytes(32);
-                encryptor.IV = pdb.GetBytes(16);
-                using (MemoryStream ms = new MemoryStream())
-                {
-                    using (CryptoStream cs = new CryptoStream(ms, encryptor.CreateDecryptor(), CryptoStreamMode.Write))
-                    {
-                        cs.Write(cipherBytes, 0, cipherBytes.Length);
-                        cs.Close();
-                    }
-                    password = Encoding.Unicode.GetString(ms.ToArray());
-                }
-            }
-            return password;
+            string decryptpwd = string.Empty;
+            UTF8Encoding encodepwd = new UTF8Encoding();
+            Decoder Decode = encodepwd.GetDecoder();
+            byte[] todecode_byte = Convert.FromBase64String(encryptpwd);
+            int charCount = Decode.GetCharCount(todecode_byte, 0, todecode_byte.Length);
+            char[] decoded_char = new char[charCount];
+            Decode.GetChars(todecode_byte, 0, todecode_byte.Length, decoded_char, 0);
+            decryptpwd = new String(decoded_char);
+            return decryptpwd;
         }
+
 
     }
 }
