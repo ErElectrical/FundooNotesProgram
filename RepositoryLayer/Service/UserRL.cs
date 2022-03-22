@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Http;
 using CloudinaryDotNet.Actions;
 using CloudinaryDotNet;
 using System.IO;
+using System.Security.Cryptography;
 
 namespace RepositoryLayer.Service
 {
@@ -38,7 +39,7 @@ namespace RepositoryLayer.Service
                 userEntity.FirstName = User.FirstName;
                 userEntity.LastName = User.LastName;
                 userEntity.Email = User.Email;
-                userEntity.Password = User.Password;
+                userEntity.Password = Encrypt(User.Password);
                 fundooContext.User.Add(userEntity);
                 int result = fundooContext.SaveChanges();
                 if (result > 0)
@@ -60,8 +61,9 @@ namespace RepositoryLayer.Service
             {
                 //Returns the first element of a collection, or the first element that satisfies a condition. Returns a default value if index is out of range.
 
-
-                var user = fundooContext.User.Where(x => x.Email == userLogin.Email && x.Password == userLogin.Password).FirstOrDefault();
+                var Decryptpassword = fundooContext.User.Where(x => x.Email == userLogin.Email).Select(x => x.Password).ToString();
+                var Encryptpassword = Decrypt(Decryptpassword);
+                var user = fundooContext.User.Where(x => x.Email == userLogin.Email && Encryptpassword == userLogin.Password).FirstOrDefault();
                 if( user != null)
                 {
                     var result = GenerateSecurityToken(user.Email, user.Id);
@@ -121,7 +123,7 @@ namespace RepositoryLayer.Service
                 if(password.Equals(confirmpassword))
                 {
                     var user = fundooContext.User.Where(opt => opt.Email == email).FirstOrDefault();
-                    user.Password = confirmpassword;
+                    user.Password = Encrypt(confirmpassword);
                     fundooContext.SaveChanges();
                     return true;
 
@@ -141,6 +143,50 @@ namespace RepositoryLayer.Service
         {
             return this.fundooContext.User.SingleOrDefault(e => e.Email.Equals(EmailId));
         }
-        
+
+        private  string Encrypt(string password)
+        {
+            string EncryptionKey = "MAKV2SPBNI99212";
+            byte[] clearBytes = Encoding.Unicode.GetBytes(password);
+            using (Aes encryptor = Aes.Create())
+            {
+                Rfc2898DeriveBytes pdb = new Rfc2898DeriveBytes(EncryptionKey, new byte[] { 0x49, 0x76, 0x61, 0x6e, 0x20, 0x4d, 0x65, 0x64, 0x76, 0x65, 0x64, 0x65, 0x76 });
+                encryptor.Key = pdb.GetBytes(32);
+                encryptor.IV = pdb.GetBytes(16);
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    using (CryptoStream cs = new CryptoStream(ms, encryptor.CreateEncryptor(), CryptoStreamMode.Write))
+                    {
+                        cs.Write(clearBytes, 0, clearBytes.Length);
+                        cs.Close();
+                    }
+                    password = Convert.ToBase64String(ms.ToArray());
+                }
+            }
+            return password;
+        }
+
+        private  string Decrypt(string password)
+        {
+            string EncryptionKey = "MAKV2SPBNI99212";
+            byte[] cipherBytes = Convert.FromBase64String(password);
+            using (Aes encryptor = Aes.Create())
+            {
+                Rfc2898DeriveBytes pdb = new Rfc2898DeriveBytes(EncryptionKey, new byte[] { 0x49, 0x76, 0x61, 0x6e, 0x20, 0x4d, 0x65, 0x64, 0x76, 0x65, 0x64, 0x65, 0x76 });
+                encryptor.Key = pdb.GetBytes(32);
+                encryptor.IV = pdb.GetBytes(16);
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    using (CryptoStream cs = new CryptoStream(ms, encryptor.CreateDecryptor(), CryptoStreamMode.Write))
+                    {
+                        cs.Write(cipherBytes, 0, cipherBytes.Length);
+                        cs.Close();
+                    }
+                    password = Encoding.Unicode.GetString(ms.ToArray());
+                }
+            }
+            return password;
+        }
+
     }
 }
