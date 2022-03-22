@@ -28,7 +28,7 @@ namespace FundooNotes.Controllers
         private readonly IMemoryCache memoryCache;
 
         private readonly IDistributedCache distributedCache;
-        private string serializedLabelNoteList;
+   
 
         public CollabratorController(ICollabratorBL collabratorBL, IMemoryCache memoryCache, IDistributedCache distributedCache)
         {
@@ -126,7 +126,7 @@ namespace FundooNotes.Controllers
 
         [HttpGet("redis")]
 
-        public async Task<IActionResult> GetAllLabelNoteUsingMemoryCache(long noteId)
+        public async Task<IActionResult> GetAllCollabUsingMemoryCache(long noteId)
         {
             var cacheKey = "CollabList";
             string serializedCollabList;

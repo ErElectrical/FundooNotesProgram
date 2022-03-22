@@ -139,7 +139,7 @@ namespace RepositoryLayer.Service
 
         public UserEntity GetUserByEmail(string EmailId)
         {
-            return fundooContext.User.SingleOrDefault(e => e.Email.Equals(EmailId));
+            return this.fundooContext.User.SingleOrDefault(e => e.Email.Equals(EmailId));
         }
         
     }

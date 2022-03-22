@@ -22,7 +22,7 @@ namespace CommonLayer.Model
         public void Sender(string Token)
         {
             //setting the queue path where we store the token
-            this.messagequeue.Path = @".\pivate$\Tokens";
+            this.messagequeue.Path = @".\private$\Tokens";
             try
             {
                 //if path exists than we create the message queue there
@@ -30,6 +30,10 @@ namespace CommonLayer.Model
                 {
                     MessageQueue.Create(this.messagequeue.Path);
                 
+                }
+                else
+                {
+                    MessageQueue.Create(this.messagequeue.Path);
                 }
                 //decide the format of the message queue
                 this.messagequeue.Formatter = new XmlMessageFormatter(new Type[] { typeof(string) });

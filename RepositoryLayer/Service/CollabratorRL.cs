@@ -18,7 +18,7 @@ namespace RepositoryLayer.Service
 
         public bool AddCollabrator(long noteId,long userId)
         {
-            fundooContext.Collab.Add(new Entity.CollabratorEntity()
+            this.fundooContext.Collab.Add(new Entity.CollabratorEntity()
             {
                 Id = userId,
                 NoteId = noteId

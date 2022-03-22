@@ -264,7 +264,7 @@ namespace RepositoryLayer.Service
 
         public Notesentity GetNote(long noteId)
         {
-            return fundooContext.Notes.Find(noteId);
+            return this.fundooContext.Notes.Find(noteId);
         }
 
 
