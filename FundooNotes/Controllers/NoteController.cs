@@ -26,7 +26,12 @@ namespace FundooNotes.Controllers
     {
         private readonly INoteBL noteBL;
         private readonly IMemoryCache memoryCache;
-        
+
+        //IDistributedCache Interface provides you with the following methods to perform actions on the actual cache
+        // GetAsync - Gets the Value from the Cache Server based on the passed key.
+        // SetAsync - Accepts a key and Value and sets it to the Cache server
+        // RefreshAsync - Resets the Sliding Expiration Timer (more about this later in the article) if any.
+        // RemoveAsync - Deletes the cache data based on the key
         private readonly IDistributedCache distributedCache;
 
 
@@ -93,27 +98,49 @@ namespace FundooNotes.Controllers
 
         }
 
+        /// <summary>
+        /// Distributed caching is when you want to handle caching outside of your application.
+        /// This also can be shared by one or more applications/servers.
+        /// Distributed cache is application-specific; i.e., 
+        /// multiple cache providers support distributed caches.
+        /// To implement distributed cache, we can use Redis and NCache. 
+        /// Redis is open souce storage which is often use for distributed cache
+        /// Radis support various data structure and its data is usually in key value pair
+        /// </summary>
+        /// <returns></returns>
         [HttpGet("redis")]
         public async Task<IActionResult> GetAllNotesUsingMemoryCache()
         {
+            //create a Cache Key that determines entity in redis server
             var cacheKey = "NoteList";
+            //local varible that will hold the serilizedNote List
             string serializedNoteList;
+            // create an object of genric list of noteentity
             var NoteList = new List<Notesentity>();
-            var redisNoteList = await distributedCache.GetAsync(cacheKey);
+            // fetch data from cache 
+            var redisNoteList = await this.distributedCache.GetAsync(cacheKey);
+            //if data found do deserialisation as on redis server data is in format of key:value pair
             if (redisNoteList != null)
             {
                 serializedNoteList = Encoding.UTF8.GetString(redisNoteList);
                 NoteList = JsonConvert.DeserializeObject<List<Notesentity>>(serializedNoteList);
             }
+            //if null fetch out from redis server than
             else
             {
+                //claim userId
                 var userId = Convert.ToInt64(User.Claims.FirstOrDefault(e => e.Type == "Id").Value);
+                //take out all the notes
                 NoteList = (List<Notesentity>)this.noteBL.GetAllNotes(userId);
+                //serialise the noteList
                 serializedNoteList = JsonConvert.SerializeObject(NoteList);
+                //encode the serialized list 
                 redisNoteList = Encoding.UTF8.GetBytes(serializedNoteList);
+                // set up the time exipration
                 var options = new DistributedCacheEntryOptions()
                     .SetAbsoluteExpiration(DateTime.Now.AddMinutes(10))
                     .SetSlidingExpiration(TimeSpan.FromMinutes(2));
+                //set up the noteList into disrtibuted Cache memory
                 await distributedCache.SetAsync(cacheKey, redisNoteList, options);
             }
             return Ok(NoteList);

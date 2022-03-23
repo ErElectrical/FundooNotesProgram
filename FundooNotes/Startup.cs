@@ -36,7 +36,7 @@ namespace FundooNotes
         {
             Configuration = configuration;
         }
-
+        //it contains many method of configuration that contains values in the form of key : value pairs
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -50,12 +50,24 @@ namespace FundooNotes
         /// <param name="services"></param>
         public void ConfigureServices(IServiceCollection services)
         {
+            // register database context to serivice
             services.AddDbContext<FundooContext>(opts => opts.UseSqlServer(Configuration["ConnectionString:FundooDataBase"]));
 
 
-           
+
 
             //add all dependancy injection here
+            // we add dependancy injection to services in three way 
+            //With a transient service, a new instance is provided every time an instance is requested whether
+            //it is in the scope of same http request or across different http requests.
+
+            //With a scoped service we get the same instance within the scope of a given http request
+            //but a new instance across different http requests.
+
+            //With Singleton service, there is only a single instance.
+            //An instance is created, when service is first requested and that
+            //single instance single instance will be used by all subsequent http request throughout the application.
+
             services.AddTransient<IUserBL, UserBL>();
             services.AddTransient<IUserRL, UserRL>();
             services.AddTransient<INoteBL, NoteBL>();
@@ -72,11 +84,13 @@ namespace FundooNotes
             services.AddSwaggerGen();
             services.AddControllers();
 
+            //provide configuration to redis server 
             services.AddStackExchangeRedisCache(options =>
             {
                 options.Configuration = "localhost:6379";
             });
 
+            //enable distributed cache memory for services of application
             services.AddMemoryCache();
 
 
@@ -140,6 +154,7 @@ namespace FundooNotes
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            //check weather the current host environmrnt is development or not
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

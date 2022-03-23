@@ -206,13 +206,18 @@ namespace RepositoryLayer.Service
             }
             return false;
         }
-
+        /// <summary>
+        /// Upload image on cloudinary through application
+        /// </summary>
+        /// <param name="file"></param>
+        /// <param name="noteId"></param>
+        /// <returns></returns>
         public bool UploadImage(IFormFile file, long noteId)
         {
             try
             {
 
-
+                //provide credentials to the constructor of cloudinary class
                 var CloudinaryData = new CloudinaryDotNet.Cloudinary(new Account
                 {
                     ApiKey = "489788912754161",
@@ -220,16 +225,20 @@ namespace RepositoryLayer.Service
                     Cloud = "dwwotohwm"
                 });
 
+                //take the file into streams
                 Stream s = file.OpenReadStream();
 
+                //provide filename and stream of file to ImageUploadParams.
                 var imageuploadparams = new ImageUploadParams()
                 {
                     File = new FileDescription("Test", s)
                 };
 
+                //upload the file on cloudinary 
                 var Result = CloudinaryData.Upload(imageuploadparams);
-
+                //match the noteId with table noteId
                 var result = this.fundooContext.Notes.FirstOrDefault(e => e.NoteId == noteId);
+                //if found entry than provide the Url to image cloumn
                 if (result != null)
                 {
                     result.Image = Result.Url.ToString();

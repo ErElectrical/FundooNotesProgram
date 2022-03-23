@@ -12,12 +12,11 @@ namespace RepositoryLayer.Service
     public class LabelRL : ILabelRL
     {
         private readonly FundooContext fundooContext;
-        private readonly INoteRL noteRL;
 
         public LabelRL(FundooContext fundooContext)
         {
             this.fundooContext = fundooContext;
-            this.noteRL = noteRL;
+          
         }
 
         public bool AddLabel(long noteId, LabelRequest Label )

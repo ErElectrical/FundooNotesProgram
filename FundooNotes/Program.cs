@@ -15,6 +15,11 @@ namespace FundooNotes
     /// </summary>
     public class Program
     {
+        /// <summary>
+        /// Main Method Entry point
+        /// compile the CreateHostBuilder method
+        /// </summary>
+        /// <param name="args"></param>
         public static void Main(string[] args)
         {
             

@@ -61,13 +61,13 @@ namespace RepositoryLayer.Service
             {
                 //Returns the first element of a collection, or the first element that satisfies a condition. Returns a default value if index is out of range.
 
-                var Decryptpassword = this.fundooContext.User.Where(x => x.Email == userLogin.Email).Select(x => x.Password).ToString();
-                var Encryptpassword = Decrypt(Decryptpassword);
-                var user = fundooContext.User.Where(x => x.Email == userLogin.Email).FirstOrDefault();
-                if( user != null && Encryptpassword == userLogin.Password)
+                var result = this.fundooContext.User.FirstOrDefault(x => x.Email == userLogin.Email);
+                var Encryptpassword = Decrypt(result.Password);
+                
+                if(result != null && Encryptpassword == userLogin.Password)
                 {
-                    var result = GenerateSecurityToken(user.Email, user.Id);
-                    return result;
+                    var token = GenerateSecurityToken(result.Email, result.Id);
+                    return token;
                 }
                 else
                 {
@@ -82,21 +82,34 @@ namespace RepositoryLayer.Service
 
         private string GenerateSecurityToken(string Email, long Id)
         {
+            //Provide Secret key 
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_Toolsettings["Jwt:secretKey"]));
+            //provide credentials 
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+            //declare who claims for it 
             var claims = new[] {
                 new Claim(ClaimTypes.Email,Email),
                 new Claim("Id",Id.ToString())
             };
+            //genrate token by giving important information
             var token = new JwtSecurityToken(_Toolsettings["Jwt:Issuer"],
               _Toolsettings["Jwt:Issuer"],
               claims,
               expires: DateTime.Now.AddMinutes(60),
               signingCredentials: credentials);
+            
             return new JwtSecurityTokenHandler().WriteToken(token);
 
         }
 
+        /// <summary>
+        /// 1. check weather the provided email is available in table or not
+        /// 2. genrate security token 
+        /// 3. send it to msmq section that will mail the user on its mail Id
+        /// 4. return the token
+        /// </summary>
+        /// <param name="email"></param>
+        /// <returns></returns>
         public string ForgetPassword(string email)
         {
             try
@@ -144,25 +157,48 @@ namespace RepositoryLayer.Service
             return this.fundooContext.User.SingleOrDefault(e => e.Email.Equals(EmailId));
         }
 
+        /// <summary>
+        /// Base64 is a group of similar binary-to-text encoding schemes 
+        /// representing binary data in an ASCII string format by translating it into a radix-64 representation.
+        /// rdix 64 is a binary to text representation that allow conversion of binary data into their ascii values
+        /// Each Base64 digit represents exactly 6-bits of data that means 4 6-bit Base64 digits can represent 3 bytes.
+
+
+        /// </summary>
+        /// <param name="password"></param>
+        /// <returns></returns>
         public static string Encrypt(string password)
         {
+            //take an empty string
             string strmsg = string.Empty;
+            //initialise a array of length password length
             byte[] encode = new byte[password.Length];
+            //encode the password into bytes and initialise it to byte array
             encode = Encoding.UTF8.GetBytes(password);
+            //initialise the string by converting it into base64 string
             strmsg = Convert.ToBase64String(encode);
             return strmsg;
         }
 
         public static string Decrypt(string encryptpwd)
         {
+            // take an empty string that will contains password 
             string decryptpwd = string.Empty;
+            //create an object of encoding class
             UTF8Encoding encodepwd = new UTF8Encoding();
+            //create a local varible of Decoder class and apply get decode method onit.
             Decoder Decode = encodepwd.GetDecoder();
+            //take the encrypted password into byte array
             byte[] todecode_byte = Convert.FromBase64String(encryptpwd);
+            // count charcter of byte array
             int charCount = Decode.GetCharCount(todecode_byte, 0, todecode_byte.Length);
+            //create a char array of length byte array
             char[] decoded_char = new char[charCount];
+            //get all charcter of it
             Decode.GetChars(todecode_byte, 0, todecode_byte.Length, decoded_char, 0);
+            //put the decode charcter into string 
             decryptpwd = new String(decoded_char);
+
             return decryptpwd;
         }
 
