@@ -1,33 +1,52 @@
-﻿using CommonLayer.Model;
-using repositorylayer.entity;
-using RepositoryLayer.Context;
-using RepositoryLayer.InterFace;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Linq;
-using Microsoft.AspNetCore.Http;
-using System.IO;
-using CloudinaryDotNet.Actions;
-using CloudinaryDotNet;
+﻿// <copyright file="NoteRL.cs" company="PlaceholderCompany">
+// Copyright (c) PlaceholderCompany. All rights reserved.
+// </copyright>
 
 namespace RepositoryLayer.Service
 {
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Text;
+    using CloudinaryDotNet;
+    using CloudinaryDotNet.Actions;
+    using CommonLayer.Model;
+    using Microsoft.AspNetCore.Http;
+    using RepositoryLayer.Context;
+    using Repositorylayer.Entity;
+    using RepositoryLayer.InterFace;
+
+    /// <summary>
+    /// NoteRL satisfied the interface INoteRL.
+    /// </summary>
+    /// <seealso cref="RepositoryLayer.InterFace.INoteRL" />
     public class NoteRL : INoteRL
     {
         private readonly FundooContext fundooContext;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NoteRL"/> class.
+        /// </summary>
+        /// <param name="fundooContext">The fundoo context.</param>
         public NoteRL(FundooContext fundooContext)
         {
             this.fundooContext = fundooContext;
         }
 
+        /// <summary>
+        /// Creates the note.
+        /// </summary>
+        /// <param name="noteCreation">The note creation.</param>
+        /// <param name="userId">The user identifier.</param>
+        /// <returns>
+        /// Noteentity if notecreted. 
+        /// else null.
+        /// </returns>
         public Notesentity createNote(NoteCreation noteCreation,long userId)
         {
             try
             {
-
-
                 Notesentity note = new Notesentity();
                 note.Title = noteCreation.Title;
                 note.Description = noteCreation.Description;
@@ -51,19 +70,25 @@ namespace RepositoryLayer.Service
                     return null;
                 }
             }
-            catch(Exception)
+            catch (Exception)
             {
                 throw;
             }
         }
 
+        /// <summary>
+        /// Gets all notes.
+        /// </summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <returns>
+        /// List of Notesentity.
+        /// else return null.
+        /// </returns>
         public List<Notesentity> GetAllNotes(long userId)
         {
             try
             {
-
-
-                var result = fundooContext.Notes.Where(e => e.Id == userId).ToList();
+                var result = this.fundooContext.Notes.Where(e => e.Id == userId).ToList();
                 if (result != null)
                 {
                     return result;
@@ -73,20 +98,26 @@ namespace RepositoryLayer.Service
                     return null;
                 }
             }
-            catch(Exception)
+            catch (Exception)
             {
                 throw;
             }
         }
 
-        
-        public Notesentity UpdateNote(long noteId,long userId,NoteUpdation updation)
+        /// <summary>
+        /// Updates the note.
+        /// </summary>
+        /// <param name="noteId">The note identifier.</param>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="updation">The updation.</param>
+        /// <returns>
+        /// Notesentity or  null.
+        /// </returns>
+        public Notesentity UpdateNote(long noteId , long userId , NoteUpdation updation)
         {
-            //firstorDefault method returns first element of sequence or default when no element found
+            // firstorDefault method returns first element of sequence or default when no element found
             try
             {
-
-
                 var result = this.fundooContext.Notes.FirstOrDefault(e => e.NoteId == noteId && e.Id == userId);
                 if (result != null)
                 {
@@ -94,14 +125,17 @@ namespace RepositoryLayer.Service
                     {
                         result.Title = updation.Title;
                     }
+
                     if (updation.Description != null)
                     {
                         result.Description = updation.Description;
                     }
+
                     if (updation.Image != null)
                     {
                         result.Image = updation.Image;
                     }
+
                     result.ModifiedAt = DateTime.Now;
                     this.fundooContext.SaveChanges();
                     return result;
@@ -111,23 +145,29 @@ namespace RepositoryLayer.Service
                     return null;
                 }
             }
-            catch(Exception)
+            catch (Exception)
             {
                 throw;
             }
         }
 
+        /// <summary>
+        /// Deletes the note.
+        /// </summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="noteId">The note identifier.</param>
+        /// <returns>
+        /// True or False
+        /// </returns>
         public bool DeleteNote(long userId,long noteId)
         {
             try
             {
-
-
                 var result = this.fundooContext.Notes.FirstOrDefault(e => e.Id == userId && e.NoteId == noteId);
                 if (result != null)
                 {
                     this.fundooContext.Notes.Remove(result);
-                    fundooContext.SaveChanges();
+                    this.fundooContext.SaveChanges();
                     return true;
                 }
                 else
@@ -135,18 +175,26 @@ namespace RepositoryLayer.Service
                     return false;
                 }
             }
-            catch(Exception)
+            catch (Exception)
             {
                 throw;
             }
         }
 
+        /// <summary>
+        /// Ispinneds the specified user identifier.
+        /// </summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="noteId">The note identifier.</param>
+        /// <returns>
+        /// True or False
+        /// </returns>
         public bool Ispinned(long userId,long noteId)
         {
             var result = this.fundooContext.Notes.FirstOrDefault(e => e.Id == userId && e.NoteId == noteId);
-            if(result != null)
+            if (result != null)
             {
-                if(result.IsPinned == true)
+                if (result.IsPinned == true)
                 {
                     result.IsPinned = false;
                 }
@@ -155,14 +203,21 @@ namespace RepositoryLayer.Service
                     result.IsPinned = true;
                 }
 
-                fundooContext.SaveChanges();
+                this.fundooContext.SaveChanges();
                 return true;
-
-                
             }
+
             return false;
         }
 
+        /// <summary>
+        /// Determines whether the specified user identifier is trash.
+        /// </summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="noteId">The note identifier.</param>
+        /// <returns>
+        ///   <c>true</c> if the specified user identifier is trash; otherwise, <c>false</c>.
+        /// </returns>
         public bool IsTrash(long userId,long noteId)
         {
             var result = this.fundooContext.Notes.FirstOrDefault(e => e.Id == userId && e.NoteId == noteId);
@@ -177,14 +232,21 @@ namespace RepositoryLayer.Service
                     result.IsTrash = true;
                 }
 
-                fundooContext.SaveChanges();
+                this.fundooContext.SaveChanges();
                 return true;
-
-
             }
+
             return false;
         }
 
+        /// <summary>
+        /// Determines whether the specified user identifier is archieve.
+        /// </summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="noteId">The note identifier.</param>
+        /// <returns>
+        ///   <c>true</c> if the specified user identifier is archieve; otherwise, <c>false</c>.
+        /// </returns>
         public bool IsArchieve(long userId,long noteId)
         {
             var result = this.fundooContext.Notes.FirstOrDefault(e => e.Id == userId && e.NoteId == e.NoteId);
@@ -199,25 +261,27 @@ namespace RepositoryLayer.Service
                     result.IsArchieve = true;
                 }
 
-                fundooContext.SaveChanges();
+                this.fundooContext.SaveChanges();
                 return true;
-
-
             }
+
             return false;
         }
+
         /// <summary>
-        /// Upload image on cloudinary through application
+        /// Upload image on cloudinary through application.
         /// </summary>
         /// <param name="file"></param>
         /// <param name="noteId"></param>
-        /// <returns></returns>
+        /// <returns>
+        /// True or False.
+        /// </returns>
         public bool UploadImage(IFormFile file, long noteId)
         {
             try
             {
 
-                //provide credentials to the constructor of cloudinary class
+                // provide credentials to the constructor of cloudinary class
                 var CloudinaryData = new CloudinaryDotNet.Cloudinary(new Account
                 {
                     ApiKey = "489788912754161",
@@ -225,20 +289,20 @@ namespace RepositoryLayer.Service
                     Cloud = "dwwotohwm"
                 });
 
-                //take the file into streams
+                // take the file into streams
                 Stream s = file.OpenReadStream();
 
-                //provide filename and stream of file to ImageUploadParams.
+                // provide filename and stream of file to ImageUploadParams.
                 var imageuploadparams = new ImageUploadParams()
                 {
                     File = new FileDescription("Test", s)
                 };
 
-                //upload the file on cloudinary 
+                // upload the file on cloudinary 
                 var Result = CloudinaryData.Upload(imageuploadparams);
-                //match the noteId with table noteId
+                // match the noteId with table noteId
                 var result = this.fundooContext.Notes.FirstOrDefault(e => e.NoteId == noteId);
-                //if found entry than provide the Url to image cloumn
+                // if found entry than provide the Url to image cloumn
                 if (result != null)
                 {
                     result.Image = Result.Url.ToString();
@@ -254,9 +318,17 @@ namespace RepositoryLayer.Service
             {
                 throw;
             }
-
         }
 
+        /// <summary>
+        /// Changes the color.
+        /// </summary>
+        /// <param name="color">The color.</param>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="noteId">The note identifier.</param>
+        /// <returns>
+        /// True or False.
+        /// </returns>
         public bool ChangeColor(string color,long userId,long noteId)
         {
             var result = this.fundooContext.Notes.FirstOrDefault(e => e.Id == userId && e.NoteId == noteId);
@@ -266,11 +338,17 @@ namespace RepositoryLayer.Service
                 this.fundooContext.SaveChanges();
                 return true;
             }
-            return false;
-            
 
+            return false;
         }
 
+        /// <summary>
+        /// Gets the note.
+        /// </summary>
+        /// <param name="noteId">The note identifier.</param>
+        /// <returns> 
+        /// Notesentitiy else null.
+        /// </returns>
         public Notesentity GetNote(long noteId)
         {
             return this.fundooContext.Notes.Find(noteId);

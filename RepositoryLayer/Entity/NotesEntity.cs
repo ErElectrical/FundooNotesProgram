@@ -29,37 +29,67 @@ namespace Repositorylayer.Entity
         /// </summary>
         public string Title { get; set; }
 
+        /// <summary>
+        /// Gets or Sets value For Description of notes table.
+        /// </summary>
         public string Description { get; set; }
 
+        /// <summary>
+        /// Gets or Sets value For Reminder of notes table.
+        /// </summary>
         public DateTime? Reminder { get; set; }
 
+        /// <summary>
+        /// Gets or Sets value For colour of notes table.
+        /// </summary>
         public string Colour { get; set; }
 
+        /// <summary>
+        /// Gets or Sets value For Image of notes table.
+        /// </summary>
         public string Image { get; set; }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether gets or Sets value For IsTrash of notes table.
+        /// </summary>
         public bool IsTrash { get; set; }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether gets or Sets value For IsArchieve of notes table.
+        /// </summary>
         public bool IsArchieve { get; set; }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether gets or Sets value For IsPinned of notes table.
+        /// </summary>
         public bool IsPinned { get; set; }
 
+        /// <summary>
+        /// Gets or Sets value For Date Time createdAt of notes table.
+        /// </summary>
         public DateTime? CreatedAt { get; set; }
 
+        /// <summary>
+        /// Gets or Sets value For ModifiedAt of notes table.
+        /// </summary>
         public DateTime? ModifiedAt { get; set; }
 
+        /// <summary>
+        /// Gets or Sets value For Id of userId
+        /// unique identity of every  User.
+        /// </summary>
         [ForeignKey("user")]
 
         public long Id { get; set; }
 
+        /// <summary>
+        /// Gets or Sets user and returns userEntity.
+        /// </summary>
         public UserEntity user { get; set; }
 
+        /// <summary>
+        /// Gets or Sets value of collab.
+        /// </summary>
         public ICollection<CollabratorEntity> collab { get; set; }
-
-       
-
-      
-
-
-
     }
 }
